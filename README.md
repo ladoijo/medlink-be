@@ -3,24 +3,15 @@
 Spring Boot REST API for managing people records (patients/persons) with PostgreSQL and Liquibase
 for schema management.
 
-## Prerequisites
+## Requirements
 
-- JDK 17+
-- Gradle
-- Docker & Docker Compose (if running with containers)
+- Without Docker:
+    - JDK 17+
+    - Gradle
+    - PostgreSQL v16+
+- With Docker: Docker Engine and Docker Compose plugin.
 
-## Running with Docker
-
-Docker Compose provisions PostgreSQL and the medlink-be container.
-
-```bash
-docker-compose up --build
-```
-
-- App: http://localhost:8080/api
-- DB: `postgres:5432`, database `medlink`, user `medlinkuser`, password `medlinkpass`
-
-## Running locally (without Docker)
+## Running without Docker
 
 1) Start PostgreSQL manually (or `docker-compose up postgres`):
     - DB: `medlink`
@@ -34,6 +25,23 @@ docker-compose up --build
 ```
 
 App will be available at http://localhost:8080/api.
+
+## Running with Docker/Compose
+
+Docker Compose provisions PostgreSQL and the medlink-be container.
+
+```bash
+docker compose up --build
+```
+
+- App: http://localhost:8080/api
+- DB: `postgres:5432`, database `medlink`, user `medlinkuser`, password `medlinkpass`
+
+Stop and remove containers.
+
+```bash
+docker compose down
+```
 
 ## Key Endpoints
 
