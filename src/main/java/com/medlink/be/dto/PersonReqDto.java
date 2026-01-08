@@ -21,7 +21,7 @@ public record PersonReqDto(
 
     @NotBlank(message = "{error.person.phone.empty}")
     @Pattern(
-        regexp = "^\\+[1-9]\\d{7,14}$",
+        regexp = "^\\+?\\d{7,15}$",
         message = "{error.person.phone.invalid}"
     )
     String phone,

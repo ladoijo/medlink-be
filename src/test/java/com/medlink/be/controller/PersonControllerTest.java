@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.medlink.be.config.SecurityConfig;
 import com.medlink.be.constant.Endpoint;
 import com.medlink.be.constant.Gender;
 import com.medlink.be.dto.PaginatedDto;
@@ -24,15 +25,19 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
-@WebMvcTest(PersonController.class)
-@Import(LanguageUtil.class)
+@WebMvcTest(value = PersonController.class, properties = "server.servlet.context-path=/api")
+@Import({LanguageUtil.class, SecurityConfig.class})
 class PersonControllerTest {
 
   @Autowired
@@ -51,7 +56,7 @@ class PersonControllerTest {
     var paginated = new PaginatedDto<>(List.of(person), meta);
     when(personService.findAll(null, null, null, 0, 10)).thenReturn(paginated);
 
-    mockMvc.perform(get("/api" + Endpoint.PERSON_V1))
+    mockMvc.perform(get("/api" + Endpoint.PERSON_V1).contextPath("/api"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.items[0].id").value(person.id()))
         .andExpect(jsonPath("$.data.items[0].firstName").value(person.firstName()))
@@ -63,7 +68,7 @@ class PersonControllerTest {
     var person = samplePersonResDto();
     when(personService.findById(1L)).thenReturn(person);
 
-    mockMvc.perform(get("/api" + Endpoint.PERSON_BY_ID_V1, 1L))
+    mockMvc.perform(get("/api" + Endpoint.PERSON_BY_ID_V1, 1L).contextPath("/api"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.id").value(person.id()))
         .andExpect(jsonPath("$.data.pid").value(person.pid()));
@@ -75,7 +80,7 @@ class PersonControllerTest {
     var person = samplePersonResDto();
     when(personService.create(any(PersonReqDto.class))).thenReturn(person);
 
-    mockMvc.perform(post("/api" + Endpoint.PERSON_V1)
+    mockMvc.perform(post("/api" + Endpoint.PERSON_V1).contextPath("/api")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(req)))
         .andExpect(status().isOk())
@@ -90,7 +95,7 @@ class PersonControllerTest {
     var person = samplePersonResDto();
     when(personService.update(eq(1L), any(PersonReqDto.class))).thenReturn(person);
 
-    mockMvc.perform(put("/api" + Endpoint.PERSON_BY_ID_V1, 1L)
+    mockMvc.perform(put("/api" + Endpoint.PERSON_BY_ID_V1, 1L).contextPath("/api")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(req)))
         .andExpect(status().isOk())
@@ -102,7 +107,7 @@ class PersonControllerTest {
 
   @Test
   void delete_softDeletesPerson() throws Exception {
-    mockMvc.perform(delete("/api" + Endpoint.PERSON_BY_ID_V1, 1L))
+    mockMvc.perform(delete("/api" + Endpoint.PERSON_BY_ID_V1, 1L).contextPath("/api"))
         .andExpect(status().isOk());
 
     verify(personService, Mockito.times(1)).deleteFlagById(1L);
@@ -112,29 +117,41 @@ class PersonControllerTest {
     return new PersonResDto(
         1L,
         "P000000001",
-        "Alya",
-        "Satria",
+        "Abu",
+        "Bakar",
         LocalDate.of(1993, 8, 17),
-        Gender.FEMALE,
+        Gender.MALE,
         "+6281234567890",
         "Jl. Merdeka No. 10",
         "Menteng",
         "DKI Jakarta",
-        "10310"
+        "1031"
     );
   }
 
   private PersonReqDto samplePersonReqDto() {
     return new PersonReqDto(
-        "Alya",
-        "Satria",
+        "Abu",
+        "Bakar",
         LocalDate.of(1993, 8, 17),
-        Gender.FEMALE,
+        Gender.MALE,
         "+6281234567890",
         "Jl. Merdeka No. 10",
         "Menteng",
         "DKI Jakarta",
-        "10310"
+        "1031"
     );
+  }
+
+  @TestConfiguration
+  static class TestMessageConfig {
+
+    @Bean
+    MessageSource messageSource() {
+      ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
+      messageSource.setBasename("messages");
+      messageSource.setDefaultEncoding("UTF-8");
+      return messageSource;
+    }
   }
 }

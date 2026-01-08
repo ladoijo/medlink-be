@@ -16,14 +16,27 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
-  backend:
+    networks:
+      - medlink-net
+
+  backend-service:
     build: .
-    container_name: backend
+    container_name: backend-service
     depends_on:
       postgres:
         condition: service_healthy
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
     ports:
       - "8080:8080"
     restart: unless-stopped
+    networks:
+      - medlink-net
+
 volumes:
   postgres_data:
+
+networks:
+  medlink-net:
+    name: medlink-net
